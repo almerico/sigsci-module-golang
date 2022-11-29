@@ -21,12 +21,17 @@ jobs:
         aws-region: us-west-2
     - name: Check out code into the Go module directory
       uses: actions/checkout@v2
-    - name: build
-      run: ./scripts/build.sh
-    - name: upload
-      if: ${{ github.ref == 'refs/heads/main' }}
+
+    - name: Conatiner
       run: |
-        aws ecr get-login-password --region eu-west-1 | docker login --username AWS --password-stdin 987376012815.dkr.ecr.eu-west-1.amazonaws.com
-        ./upload.sh
-      env:
-        PROD_ID: ${{ secrets.SIGSCI_PROD_CANONICAL_ID }}
+            docker build  --tag gotest:1 .
+            docker images
+          
+    - name: Push to ECR
+      id: ecr
+      uses: jwalton/gh-ecr-push@v1
+      with:
+          access-key-id: ${{ secrets.SIGSCI_CORE_ACCESS_KEY_ID }}
+          secret-access-key: ${{ secrets.SIGSCI_CORE_SECRET_ACCESS_KEY }}
+          region: eu-west-1
+          image: gotest:1
